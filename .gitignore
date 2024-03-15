@@ -1,0 +1,11 @@
+Debug/
+ipch/
+x64/
+RoiPositionChecker.sdf
+RoiPositionChecker.VC.db
+RoiPositionChecker/Debug/
+RoiPositionChecker/x64/
+.vs/
+RoiPositionChecker/RoiPositionChecker.aps
+
+
