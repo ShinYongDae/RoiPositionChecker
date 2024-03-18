@@ -77,7 +77,8 @@ class CRoiPositionCheckerDlg : public CDialogEx
 	TCHAR* CStringToTCHAR(CString *pStr);
 	char* CStringToChar(CString *pStr);
 
-	void SetImageRange();
+	BOOL GetBMPInfoHeader(CString sPath, BMPInfoHeader& infoHeader);
+	BOOL SetImageRange(BMPInfoHeader bmpInfoHeader);
 	uint8_t* Crop(CString sPath, ImageRange stRng, CString sTarget);
 	BOOL TemplateMatching(CString sModelName, CString sRoiName, CPoint& pnt);
 	BOOL Start(CString sPathCurr);

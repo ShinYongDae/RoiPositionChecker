@@ -285,7 +285,20 @@ void CRoiPositionCheckerDlg::OnBnClickedBtnStart()
 
 	GetDlgItem(IDC_BTN_START)->EnableWindow(FALSE);
 
-	SetImageRange();
+	BMPInfoHeader infoHeader;
+
+	if (!GetBMPInfoHeader(m_sPathCurrBmp, infoHeader))
+	{
+		GetDlgItem(IDC_BTN_START)->EnableWindow(TRUE);
+		return;
+	}
+
+	if (!SetImageRange(infoHeader))
+	{
+		GetDlgItem(IDC_BTN_START)->EnableWindow(TRUE);
+		return;
+	}
+
 	CString sModelName = CropModelName;
 	CString sRoiName = CropRoiName;
 
@@ -354,12 +367,12 @@ BOOL CRoiPositionCheckerDlg::Start(CString sPathCurr)
 		Sleep(10);
 
 		// 템플릿 매칭
-		//if (!TemplateMatching(sModelName, sRoiName, ptResult))
-		//	return FALSE;
+		if (!TemplateMatching(sModelName, sRoiName, ptResult))
+			return FALSE;
 
-
-		CPoint pnt;
+/*
 		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+		CPoint pnt;
 		CString sMsg;
 
 		////IppDib dibTmpl;
@@ -442,15 +455,11 @@ BOOL CRoiPositionCheckerDlg::Start(CString sPathCurr)
 		AfxNewBitmap(dib);
 #endif
 
-
-		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		ptResult = pnt;
 
 
-
-
-
-
+		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+*/
 
 		int OffsetX = ptResult.x - ptCenter.x;
 		int OffsetY = ptResult.y - ptCenter.y;
@@ -464,9 +473,12 @@ BOOL CRoiPositionCheckerDlg::Start(CString sPathCurr)
 	return TRUE;
 }
 
-void CRoiPositionCheckerDlg::SetImageRange()
+BOOL CRoiPositionCheckerDlg::SetImageRange(BMPInfoHeader bmpInfoHeader)
 {
 	UpdateData(TRUE);
+
+	int nWidth = bmpInfoHeader.width;
+	int nHeight = bmpInfoHeader.height;
 
 	int nOrgX_m = _ttoi(m_sOrgX);
 	int nOrgY_m = _ttoi(m_sOrgY);
@@ -511,6 +523,42 @@ void CRoiPositionCheckerDlg::SetImageRange()
 	stRoi.nOrgY = nOrgY_r - nHeight_rD / 2;
 	stRoi.nWidth = nWidth_rV;
 	stRoi.nHeight = nHeight_rV;
+
+	CString sMsg;
+
+	if (stModel.nOrgY + stModel.nHeight >= nHeight)
+	{
+		TRACE(_T("Model 이미지의 Y방향 크기가 원본 이미지의 크기보다 큽니다."));
+		sMsg.Format(_T("Model 이미지의 Y방향 크기가 원본 이미지의 크기보다 큽니다."));
+		AfxMessageBox(sMsg);
+		return FALSE;
+	}
+
+	if (stModel.nOrgX + stModel.nWidth >= nWidth)
+	{
+		TRACE(_T("Model 이미지의 X방향 크기가 원본 이미지의 크기보다 큽니다."));
+		sMsg.Format(_T("Model 이미지의 X방향 크기가 원본 이미지의 크기보다 큽니다."));
+		AfxMessageBox(sMsg);
+		return FALSE;
+	}
+
+	if (stRoi.nOrgY + stRoi.nHeight >= nHeight)
+	{
+		TRACE(_T("ROI의 최대떨림 이미지의 Y방향 크기가 원본 이미지의 크기보다 큽니다."));
+		sMsg.Format(_T("ROI의 최대떨림 이미지의 Y방향 크기가 원본 이미지의 크기보다 큽니다."));
+		AfxMessageBox(sMsg);
+		return FALSE;
+	}
+
+	if (stRoi.nOrgX + stRoi.nWidth >= nWidth)
+	{
+		TRACE(_T("ROI의 최대떨림 이미지의 X방향 크기가 원본 이미지의 크기보다 큽니다."));
+		sMsg.Format(_T("ROI의 최대떨림 이미지의 X방향 크기가 원본 이미지의 크기보다 큽니다."));
+		AfxMessageBox(sMsg);
+		return FALSE;
+	}
+
+	return TRUE;
 
 	//stRoi.nOrgX = stRoi.nOrgX - 1;
 	//stRoi.nOrgY = stRoi.nOrgY - 2;
@@ -956,6 +1004,33 @@ uint8_t* CRoiPositionCheckerDlg::CropBmp(CString sPath)
 	return croppedImageData;
 }
 
+BOOL CRoiPositionCheckerDlg::GetBMPInfoHeader(CString sPath, BMPInfoHeader& infoHeader)
+{
+	CString sMsg;
+
+	const char* inputFilename = CStringToChar(&sPath);
+	std::ifstream inputFile(inputFilename, std::ios::binary);
+	delete inputFilename;
+
+	if (!inputFile.is_open())
+	{
+		//std::cerr << "파일을 열 수 없습니다." << std::endl;
+		TRACE(_T("파일을 열 수 없습니다."));
+		sMsg.Format(_T("파일을 열 수 없습니다: %s"), sPath);
+		AfxMessageBox(sMsg);
+		return FALSE;
+	}
+
+	// BMP 파일 헤더 읽기
+	BMPHeader header;
+	inputFile.read(reinterpret_cast<char*>(&header), sizeof(header));
+
+	// BMP 이미지 정보 헤더 읽기
+	inputFile.read(reinterpret_cast<char*>(&infoHeader), sizeof(infoHeader));
+
+	return TRUE;
+}
+
 uint8_t* CRoiPositionCheckerDlg::Crop(CString sPath, ImageRange stRng, CString sTarget)
 {
 	CString sMsg;
@@ -1064,29 +1139,29 @@ BOOL CRoiPositionCheckerDlg::TemplateMatching(CString sModelName, CString sRoiNa
 {
 	CString sMsg;
 
-	IppDib dibTmpl;
-	if (!dibTmpl.Load(CT2A(sModelName)))
-	{
-		AfxMessageBox(_T("Model 파일을 불러오지 못했습니다."));
-		return FALSE;
-	}
+	//IppDib dibTmpl;
+	//if (!dibTmpl.Load(CT2A(sModelName)))
+	//{
+	//	AfxMessageBox(_T("Model 파일을 불러오지 못했습니다."));
+	//	return FALSE;
+	//}
 
-	IppDib dibRoi;
-	if (!dibRoi.Load(CT2A(sRoiName)))
+	//IppDib dibRoi;
+	if (!m_Dib.Load(CT2A(sRoiName)))
 	{
 		AfxMessageBox(_T("Roi 파일을 불러오지 못했습니다."));
 		return FALSE;
 	}
 	//AfxNewBitmap(dibTmpl);
 
-	if (dibRoi.GetWidth() < dibTmpl.GetWidth() || dibRoi.GetHeight() < dibTmpl.GetHeight())
+	if (m_Dib.GetWidth() < m_dibTmpl.GetWidth() || m_Dib.GetHeight() < m_dibTmpl.GetHeight())
 	{
 		AfxMessageBox(_T("템플릿 영상의 크기가 입력 영상보다 큽니다."));
 		return FALSE;
 	}
 
-	CONVERT_DIB_TO_BYTEIMAGE(dibRoi, img);
-	CONVERT_DIB_TO_BYTEIMAGE(dibTmpl, imgTmpl);
+	CONVERT_DIB_TO_BYTEIMAGE(m_Dib, img);
+	CONVERT_DIB_TO_BYTEIMAGE(m_dibTmpl, imgTmpl);
 	IppIntImage imgMap;
 	IppPoint dp = IppTemplateMatching(img, imgTmpl, imgMap);
 	pnt.x = dp.x;
