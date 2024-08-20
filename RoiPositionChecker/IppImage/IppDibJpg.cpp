@@ -20,8 +20,8 @@
 
 #include "IppDib.h"
 #include "jpeglib.h"
-//#pragma comment (lib, "IppImage/jpeg_32.lib")
-#pragma comment (lib, "IppImage/jpeg.lib")
+#pragma comment (lib, "IppImage/jpeg_32.lib")
+//#pragma comment (lib, "IppImage/jpeg.lib")
 
 struct my_error_mgr {
 	struct jpeg_error_mgr pub;	/* "public" fields */

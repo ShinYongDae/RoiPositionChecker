@@ -10,15 +10,19 @@
 
 #include <math.h>
 
-#include "IppImage\IppImage.h"
-#include "IppImage\IppConvert.h"
-#include "IppImage\IppEnhance.h"
-#include "IppImage\IppFilter.h"
-#include "IppImage\IppGeometry.h"
-#include "IppImage\IppFourier.h"
-#include "IppImage\IppFeature.h"
-#include "IppImage\IppColor.h"
-#include "IppImage\IppSegment.h"
+#include "IppImage/IppImage.h"
+#include "IppImage/IppConvert.h"
+#include "IppImage/IppEnhance.h"
+#include "IppImage/IppFilter.h"
+#include "IppImage/IppGeometry.h"
+#include "IppImage/IppFourier.h"
+#include "IppImage/IppFeature.h"
+#include "IppImage/IppColor.h"
+#include "IppImage/IppSegment.h"
+
+#include "lib/tiffio.h"
+#pragma comment (lib, "lib/libtiff.lib")
+//#pragma comment (lib, "C:\\Workspaces\\VisualStudio\\RoiPositionChecker\\RoiPositionChecker\\lib\\libtiff.lib")
 
 
 #define CONVERT_DIB_TO_BYTEIMAGE(m_Dib, img) \
@@ -79,17 +83,20 @@ END_MESSAGE_MAP()
 
 CRoiPositionCheckerDlg::CRoiPositionCheckerDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(IDD_ROIPOSITIONCHECKER_DIALOG, pParent)
-	, m_sOrgX(_T("8351"))
-	, m_sOrgY(_T("92"))
-	, m_sWidth(_T("7"))
-	, m_sHeight(_T("10"))
+	, m_sOrgX(_T("8155"))
+	, m_sOrgY(_T("290"))
+	, m_sWidth(_T("18"))
+	, m_sHeight(_T("18"))
 	, m_sMaxPixel(_T("10"))
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 
+	m_sPathCurrTif = _T("");
+	m_sPathCurrTif = _T("");
+	m_sPathPrevTifFolder = _T("");
+	m_sNamePrevBmpFile = _T("");
 	m_sPathCurrBmp = _T("");
 	m_sPathPrevBmpFolder = _T("");
-	m_sNamePrevBmpFile = _T("");
 }
 
 void CRoiPositionCheckerDlg::DoDataExchange(CDataExchange* pDX)
@@ -215,7 +222,7 @@ CString CRoiPositionCheckerDlg::FileBrowse()
 	int nAoiMachineNum = 0;
 
 	// File Open Filter 
-	static TCHAR BASED_CODE szFilter[] = _T("BMP Files (*.bmp)|*.bmp;ll Files (*.*)|*.*||");
+	static TCHAR BASED_CODE szFilter[] = _T("TIF Files (*.tif)|*.tif|BMP Files (*.bmp)|*.bmp|Files (*.*)|*.*||");
 
 	// CFileDialog 
 	CFileDialog dlg(TRUE, NULL, NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, szFilter, NULL);
@@ -245,11 +252,38 @@ CString CRoiPositionCheckerDlg::FileBrowse()
 	{
 		sPath = FilePath = dlg.GetPathName();
 
-		CString sFileName;
-		int nPos = FilePath.ReverseFind('\\');
-		sFileName = FilePath.Right(FilePath.GetLength() - nPos - 1);
-		m_sNamePrevBmpFile = sFileName;
-		m_sPathPrevBmpFolder = FilePath.Left(nPos);
+		CString sFileName, sExp, sExpLower;
+		int nPos0 = FilePath.ReverseFind('\\');
+		sFileName = FilePath.Right(FilePath.GetLength() - nPos0 - 1);
+
+		int nPos = sFileName.ReverseFind('.');
+		sExp = sFileName.Right(sFileName.GetLength() - nPos - 1);
+		sExpLower = sExp.MakeLower();
+		if (sExpLower == _T("tif"))
+		{
+			m_sPathCurrTif = sPath;
+			m_sNamePrevTifFile = sFileName;
+			m_sPathPrevTifFolder = FilePath.Left(nPos0);
+
+			m_sPathCurrBmp = _T("");
+			m_sNamePrevBmpFile = _T("");
+			m_sPathPrevBmpFolder = _T("");
+		}
+		else if (sExpLower == _T("bmp"))
+		{
+			m_sPathCurrBmp = sPath;
+			m_sNamePrevBmpFile = sFileName;
+			m_sPathPrevBmpFolder = FilePath.Left(nPos0);
+
+			m_sPathCurrTif = _T("");
+			m_sNamePrevTifFile = _T("");
+			m_sPathPrevTifFolder = _T("");
+		}
+		else
+		{
+			AfxMessageBox(_T("TIF or BMP 파일을 선택하세요."));
+			sPath = _T("");
+		}
 		return sPath;
 	}
 
@@ -265,24 +299,41 @@ void CRoiPositionCheckerDlg::OnBnClickedBtnOpen()
 		return;
 
 	GetDlgItem(IDC_STC_PATH)->SetWindowText(sPath);
-	m_sPathCurrBmp = sPath;
+	//m_sPathCurrBmp = sPath;
 	GetDlgItem(IDC_BTN_START)->EnableWindow(TRUE);
 }
 
 void CRoiPositionCheckerDlg::OnBnClickedBtnStart()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	if (!m_sPathCurrBmp.IsEmpty())
+	{
+		StartBmp();
+	}
+	else if (!m_sPathCurrTif.IsEmpty())
+	{
+		StartTif();
+	}
+	else
+	{
+		AfxMessageBox(_T("TIF or BMP 파일을 선택하세요."));
+	}
+
+
 	//TestBmpCopy(m_sPathCurrBmp);
 	//Test(m_sPathCurrBmp);
 
-/*	
+/*
 	// 이미지 데이터를 저장할 버퍼 생성
 	uint8_t* imageData;
 	imageData = CropBmp(m_sPathCurrBmp);
 	// 메모리 해제
 	delete[] imageData;
 */
+}
 
+void CRoiPositionCheckerDlg::StartBmp()
+{
 	GetDlgItem(IDC_BTN_START)->EnableWindow(FALSE);
 
 	BMPInfoHeader infoHeader;
@@ -293,19 +344,19 @@ void CRoiPositionCheckerDlg::OnBnClickedBtnStart()
 		return;
 	}
 
-	if (!SetImageRange(infoHeader))
+	if (!SetBmpImageRange(infoHeader))
 	{
 		GetDlgItem(IDC_BTN_START)->EnableWindow(TRUE);
 		return;
 	}
 
-	CString sModelName = CropModelName;
-	CString sRoiName = CropRoiName;
+	CString sModelName = BmpCropModelName;
+	CString sRoiName = BmpCropRoiName;
 
-	uint8_t* ModelData = Crop(m_sPathCurrBmp, stModel, sModelName);
+	uint8_t* ModelData = CropBmp(m_sPathCurrBmp, stModel, sModelName);
 	//uint8_t* RoiData = Crop(m_sPathCurrBmp, stRoi);
 
-	Start(m_sPathCurrBmp);
+	StartBmp(m_sPathCurrBmp);
 
 	// 메모리 해제
 	//delete[] RoiData;
@@ -314,10 +365,10 @@ void CRoiPositionCheckerDlg::OnBnClickedBtnStart()
 	GetDlgItem(IDC_BTN_START)->EnableWindow(TRUE);
 }
 
-BOOL CRoiPositionCheckerDlg::Start(CString sPathCurr)
+BOOL CRoiPositionCheckerDlg::StartBmp(CString sPathCurr)
 {
-	CString sModelName = CropModelName;
-	CString sRoiName = CropRoiName;
+	CString sModelName = BmpCropModelName;
+	CString sRoiName = BmpCropRoiName;
 
 	CPoint ptResult, ptCenter;
 	ptCenter.x = stRoi.nWidth / 2;
@@ -361,7 +412,7 @@ BOOL CRoiPositionCheckerDlg::Start(CString sPathCurr)
 
 		sFileName = cFile.GetFileName();
 		sFilePath = cFile.GetFilePath();
-		uint8_t* RoiData = Crop(sFilePath, stRoi, sRoiName);
+		uint8_t* RoiData = CropBmp(sFilePath, stRoi, sRoiName);
 		// 메모리 해제
 		delete[] RoiData;
 		Sleep(10);
@@ -369,97 +420,6 @@ BOOL CRoiPositionCheckerDlg::Start(CString sPathCurr)
 		// 템플릿 매칭
 		if (!TemplateMatching(sModelName, sRoiName, ptResult))
 			return FALSE;
-
-/*
-		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-		CPoint pnt;
-		CString sMsg;
-
-		////IppDib dibTmpl;
-		//if (!m_dibTmpl.Load(CT2A(sModelName)))
-		//{
-		//	AfxMessageBox(_T("Model 파일을 불러오지 못했습니다."));
-		//	return FALSE;
-		//}
-
-		//IppDib dibRoi;
-		if (!m_Dib.Load(CT2A(sRoiName)))
-		{
-			AfxMessageBox(_T("Roi 파일을 불러오지 못했습니다."));
-			return FALSE;
-		}
-		//AfxNewBitmap(dibTmpl);
-
-		if (m_Dib.GetWidth() < m_dibTmpl.GetWidth() || m_Dib.GetHeight() < m_dibTmpl.GetHeight())
-		{
-			AfxMessageBox(_T("템플릿 영상의 크기가 입력 영상보다 큽니다."));
-			return FALSE;
-		}
-
-		CONVERT_DIB_TO_BYTEIMAGE(m_Dib, img);
-		CONVERT_DIB_TO_BYTEIMAGE(m_dibTmpl, imgTmpl);
-
-		IppIntImage imgMap;
-		IppPoint dp = IppTemplateMatching(img, imgTmpl, imgMap);
-		pnt.x = dp.x;
-		pnt.y = dp.y;
-
-#if 0
-		{
-			IppByteImage imgCvt(img.GetWidth(), img.GetHeight());
-			BYTE* pCvt = imgCvt.GetPixels();
-			int* pMap = imgMap.GetPixels();
-
-			int max_value = 0;
-			for (int i = 0; i < img.GetSize(); i++)
-			{
-				if (pMap[i] > max_value) max_value = pMap[i];
-			}
-
-			if (max_value != 0)
-			{
-				for (int i = 0; i < img.GetSize(); i++)
-				{
-					pCvt[i] = pMap[i] * 255 / max_value;
-				}
-			}
-
-			CONVERT_IMAGE_TO_DIB(imgCvt, dibMap)
-				AfxNewBitmap(dibMap);
-		}
-#endif
-
-#if 0
-		{ // 입력 영상에 BOX 그리기
-			int tw2 = imgTmpl.GetWidth() / 2;
-			int th2 = imgTmpl.GetHeight() / 2;
-
-			int minx = dp.x - tw2;
-			int maxx = dp.x + tw2;
-			int miny = dp.y - th2;
-			int maxy = dp.y + th2;
-
-			BYTE** ptr = img.GetPixels2D();
-
-			for (int j = miny; j < maxy; j++)
-				ptr[j][minx] = ptr[j][maxx] = 255;
-
-			for (int i = minx; i < maxx; i++)
-				ptr[miny][i] = ptr[maxy][i] = 255;
-		}
-
-		CONVERT_IMAGE_TO_DIB(img, dib);
-
-		AfxPrintInfo(_T("[템플릿 매칭] 입력 영상: %s, 템플릿 영상: %s, 검출 좌표: (%d, %d)"),
-			GetTitle(), dlg.GetFileName(), dp.x, dp.y);
-		AfxNewBitmap(dib);
-#endif
-
-		ptResult = pnt;
-
-
-		//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-*/
 
 		int OffsetX = ptResult.x - ptCenter.x;
 		int OffsetY = ptResult.y - ptCenter.y;
@@ -473,7 +433,7 @@ BOOL CRoiPositionCheckerDlg::Start(CString sPathCurr)
 	return TRUE;
 }
 
-BOOL CRoiPositionCheckerDlg::SetImageRange(BMPInfoHeader bmpInfoHeader)
+BOOL CRoiPositionCheckerDlg::SetBmpImageRange(BMPInfoHeader bmpInfoHeader)
 {
 	UpdateData(TRUE);
 
@@ -633,6 +593,9 @@ void CRoiPositionCheckerDlg::Test(CString sPath)
 		return;
 	}
 
+	// 원본 이미지 크기
+	uint32_t imageSizeOrg = infoHeader.width * infoHeader.height * (infoHeader.bitCount / 8);
+
 	// 새로운 BMP 파일 헤더 작성
 	BMPHeader newHeader = header;
 	newHeader.fileSize = sizeof(newHeader) + sizeof(infoHeader) + cropWidth * cropHeight * (infoHeader.bitCount / 8);
@@ -662,115 +625,6 @@ void CRoiPositionCheckerDlg::Test(CString sPath)
 	std::cout << "파일이 성공적으로 crop되었습니다." << std::endl;
 	TRACE(_T("파일이 성공적으로 crop되었습니다."));
 }
-
-//void CRoiPositionCheckerDlg::Test(CString sPath)
-//{
-//	CString sMsg;
-//
-//	const char* inputFilename = "input.bmp";
-//	const char* outputFilename = "output.bmp";
-//	const int cropX = 100; // 잘라낼 영역의 시작 X 좌표
-//	const int cropY = 100; // 잘라낼 영역의 시작 Y 좌표
-//	const int cropWidth = 64; // 잘라낼 영역의 너비
-//	const int cropHeight = 64; // 잘라낼 영역의 높이
-//
-//								// 입력 파일 열기
-//	std::ifstream inputFile(inputFilename, std::ios::binary);
-//	if (!inputFile.is_open()) 
-//	{
-//		//std::cerr << "입력 파일을 열 수 없습니다." << std::endl;
-//		TRACE(_T("입력 파일을 열 수 없습니다."));
-//		return;
-//	}
-//
-//	// BMP 파일 헤더 읽기
-//	BMPHeader header;
-//	inputFile.read(reinterpret_cast<char*>(&header), sizeof(header));
-//
-//	// BMP 이미지 정보 헤더 읽기
-//	BMPInfoHeader infoHeader;
-//	inputFile.read(reinterpret_cast<char*>(&infoHeader), sizeof(infoHeader));
-//
-//	// 8비트 컬러를 사용하는지 확인
-//	// 색상 테이블 읽기
-//	std::vector<uint32_t> colorTable;
-//
-//	if (infoHeader.bitCount == 8) 
-//	{
-//		if (infoHeader.colorsUsed == 0) 
-//		{
-//			infoHeader.colorsUsed = 256; // 색상 테이블이 없는 경우 기본값으로 설정
-//		}
-//
-//		for (uint32_t i = 0; i < infoHeader.colorsUsed; ++i) 
-//		{
-//			uint32_t color;
-//			inputFile.read(reinterpret_cast<char*>(&color), sizeof(color));
-//			colorTable.push_back(color);
-//		}
-//	}
-//
-//	// 입력 파일에서 이미지 데이터를 읽어옵니다.
-//	int rowSize = ((infoHeader.bitCount * infoHeader.width + 31) / 32) * 4; // 행당 바이트 수
-//	std::vector<char> imageData(rowSize * infoHeader.height);
-//	inputFile.seekg(header.dataOffset, std::ios::beg);
-//	inputFile.read(imageData.data(), imageData.size());
-//	inputFile.close();
-//
-//	// 출력 파일 열기
-//	std::ofstream outputFile(outputFilename, std::ios::binary);
-//	if (!outputFile.is_open()) 
-//	{
-//		//std::cerr << "출력 파일을 열 수 없습니다." << std::endl;
-//		TRACE(_T("출력 파일을 열 수 없습니다."));
-//		return;
-//	}
-//
-//	// 새로운 BMP 파일 헤더 작성
-//	BMPHeader newHeader = header;
-//	newHeader.fileSize = sizeof(newHeader) + sizeof(infoHeader) + cropWidth * cropHeight * (infoHeader.bitCount / 8);
-//	newHeader.dataOffset = sizeof(newHeader) + sizeof(infoHeader);
-//	//outputFile.write(reinterpret_cast<char*>(&newHeader), sizeof(newHeader));
-//	outputFile.write(reinterpret_cast<char*>(&header), sizeof(header));
-//
-//	// 새로운 BMP 이미지 정보 헤더 작성
-//	BMPInfoHeader newInfoHeader = infoHeader;
-//	newInfoHeader.width = cropWidth;
-//	newInfoHeader.height = cropHeight;
-//	newInfoHeader.imageSize = cropWidth * cropHeight * (infoHeader.bitCount / 8);
-//	//outputFile.write(reinterpret_cast<char*>(&newInfoHeader), sizeof(newInfoHeader));
-//	outputFile.write(reinterpret_cast<char*>(&infoHeader), sizeof(infoHeader));
-//
-//	// 8비트 컬러를 사용하는지 확인
-//	if (infoHeader.bitCount == 8)
-//	{
-//		// 색상 테이블 출력
-//		//std::cout << "색상 테이블:" << std::endl;
-//		TRACE(_T("색상 테이블:"));
-//
-//		for (const auto& color : colorTable) 
-//		{
-//			uint8_t blue = color & 0xFF;
-//			uint8_t green = (color >> 8) & 0xFF;
-//			uint8_t red = (color >> 16) & 0xFF;
-//			//std::cout << "R: " << static_cast<int>(red) << ", G: " << static_cast<int>(green) << ", B: " << static_cast<int>(blue) << std::endl;
-//			sMsg.Format(_T("R: %d, G: %d, B: %d"), static_cast<int>(red), static_cast<int>(green), static_cast<int>(blue));
-//			TRACE(sMsg);
-//		}
-//	}
-//
-//	// 이미지 데이터에서 잘라낼 영역만 추출하여 출력 파일에 쓰기
-///*	for (int y = cropY; y < cropY + cropHeight; ++y) 
-//	{
-//		int offset = (infoHeader.height - 1 - y) * rowSize + cropX * (infoHeader.bitCount / 8);
-//		outputFile.write(imageData.data() + offset, cropWidth * (infoHeader.bitCount / 8));
-//	}*/
-//	outputFile.write(imageData.data(), imageData.size());
-//
-//	outputFile.close();
-//	//std::cout << "파일이 성공적으로 crop되었습니다." << std::endl;
-//	TRACE(_T("파일이 성공적으로 crop되었습니다."));
-//}
 
 void CRoiPositionCheckerDlg::TestBmpCopy(CString sPath)
 {
@@ -886,9 +740,6 @@ uint8_t* CRoiPositionCheckerDlg::LoadBmp(CString sPath, BMPHeader* header, BMPIn
 	file.read(reinterpret_cast<char*>(imageData), infoHeader->imageSize);
 
 	// 이미지 정보 출력
-	//std::cout << "이미지 폭: " << infoHeader.width << "px" << std::endl;
-	//std::cout << "이미지 높이: " << infoHeader.height << "px" << std::endl;
-	//std::cout << "비트 수: " << infoHeader.bitCount << std::endl;
 	TRACE(_T("이미지 폭: %d px", infoHeader->width));
 	TRACE(_T("이미지 높이: %d px", infoHeader->height));
 	TRACE(_T("비트 수: %d", infoHeader->bitCount));
@@ -914,6 +765,7 @@ uint8_t* CRoiPositionCheckerDlg::CropBmp(CString sPath)
 	std::ifstream inputFile(inputFilename, std::ios::binary);
 	std::ofstream outputFile(outputFilename, std::ios::binary);
 	delete inputFilename;
+	delete outputFilename;
 
 	if (!inputFile.is_open() || !outputFile.is_open()) {
 		//std::cerr << "파일을 열 수 없습니다." << std::endl;
@@ -953,6 +805,9 @@ uint8_t* CRoiPositionCheckerDlg::CropBmp(CString sPath)
 	}
 
 
+	// 원본 이미지 크기
+	uint32_t imageSizeOrg = infoHeader.width * infoHeader.height * (infoHeader.bitCount / 8);
+
 	// 새로운 이미지 정보 헤더 설정
 	BMPInfoHeader newInfoHeader = infoHeader;
 	newInfoHeader.width = cropWidth;
@@ -970,9 +825,9 @@ uint8_t* CRoiPositionCheckerDlg::CropBmp(CString sPath)
 	}
 
 	// 이미지 데이터를 저장할 버퍼 생성
-	uint8_t* imageData = new uint8_t[infoHeader.imageSize + 1];
+	uint8_t* imageData = new uint8_t[imageSizeOrg + 1];
 	inputFile.seekg(header.dataOffset, std::ios::beg);
-	inputFile.read(reinterpret_cast<char*>(imageData), infoHeader.imageSize);
+	inputFile.read(reinterpret_cast<char*>(imageData), imageSizeOrg);
 
 	// 잘라낸 이미지 데이터를 저장할 버퍼 생성
 	uint8_t* croppedImageData = new uint8_t[newInfoHeader.imageSize + 1];
@@ -1031,7 +886,7 @@ BOOL CRoiPositionCheckerDlg::GetBMPInfoHeader(CString sPath, BMPInfoHeader& info
 	return TRUE;
 }
 
-uint8_t* CRoiPositionCheckerDlg::Crop(CString sPath, ImageRange stRng, CString sTarget)
+uint8_t* CRoiPositionCheckerDlg::CropBmp(CString sPath, ImageRange stRng, CString sTarget)
 {
 	CString sMsg;
 
@@ -1085,6 +940,8 @@ uint8_t* CRoiPositionCheckerDlg::Crop(CString sPath, ImageRange stRng, CString s
 		}
 	}
 
+	// 원본 이미지 크기
+	uint32_t imageSizeOrg = infoHeader.width * infoHeader.height * (infoHeader.bitCount / 8);
 
 	// 새로운 이미지 정보 헤더 설정
 	BMPInfoHeader newInfoHeader = infoHeader;
@@ -1103,9 +960,9 @@ uint8_t* CRoiPositionCheckerDlg::Crop(CString sPath, ImageRange stRng, CString s
 	}
 
 	// 이미지 데이터를 저장할 버퍼 생성
-	uint8_t* imageData = new uint8_t[infoHeader.imageSize + 1];
+	uint8_t* imageData = new uint8_t[imageSizeOrg + 1];
 	inputFile.seekg(header.dataOffset, std::ios::beg);
-	inputFile.read(reinterpret_cast<char*>(imageData), infoHeader.imageSize);
+	inputFile.read(reinterpret_cast<char*>(imageData), imageSizeOrg);
 
 	// 잘라낸 이미지 데이터를 저장할 버퍼 생성
 	uint8_t* croppedImageData = new uint8_t[newInfoHeader.imageSize + 1];
@@ -1220,5 +1077,564 @@ BOOL CRoiPositionCheckerDlg::TemplateMatching(CString sModelName, CString sRoiNa
 
 	sMsg.Format(_T("[템플릿 매칭] 입력 영상: %s, 템플릿 영상: %s, 검출 좌표: (%d, %d)"), sRoiName, sModelName, dp.x, dp.y);
 	TRACE(sMsg);
+	return TRUE;
+}
+
+
+void CRoiPositionCheckerDlg::StartTif()
+{
+	GetDlgItem(IDC_BTN_START)->EnableWindow(FALSE);
+
+	TIFFInfoHeader infoHeader;
+
+	if (!GetTifInfoHeader(m_sPathCurrTif, infoHeader))
+	{
+		GetDlgItem(IDC_BTN_START)->EnableWindow(TRUE);
+		return;
+	}
+
+	if (!SetTifImageRange(infoHeader))
+	{
+		GetDlgItem(IDC_BTN_START)->EnableWindow(TRUE);
+		return;
+	}
+
+	CString sModelName = TifCropModelName;
+	CString sRoiName = TifCropRoiName;
+
+	uint8_t* ModelData = CropTif(m_sPathCurrTif, stModel, sModelName);
+	//uint8_t* RoiData = Crop(m_sPathCurrBmp, stRoi);
+
+	StartTif(m_sPathCurrTif);
+
+	// 메모리 해제
+	//delete[] RoiData;
+	delete[] ModelData;
+
+	GetDlgItem(IDC_BTN_START)->EnableWindow(TRUE);
+}
+
+BOOL CRoiPositionCheckerDlg::StartTif(CString sPathCurr)
+{
+	CString sModelName = TifCropModelName;
+	CString sRoiName = TifCropRoiName;
+
+	CPoint ptResult, ptCenter;
+	ptCenter.x = stRoi.nWidth / 2;
+	ptCenter.y = stRoi.nHeight / 2;
+
+	CString sFile = _T(""), sPathFolder = _T("");
+	int nPos = -1;
+
+	nPos = sPathCurr.ReverseFind(_T('\\'));
+	sFile = sPathCurr.Right(sPathCurr.GetLength() - nPos - 1);
+	sFile.Trim();
+	sPathFolder = sPathCurr.Left(nPos);
+
+
+	CFileFind cFile;
+	BOOL bExist = cFile.FindFile(sPathFolder + _T("\\*.tif"));
+	if (!bExist)
+	{
+		return FALSE; // tif파일이 존재하지 않음.
+	}
+
+	CString sFileName, sRst;
+	CString sFilePath, sDisp = _T("");
+	int nTot = 0;
+
+	GetDlgItem(IDC_EDIT_DISPLAY)->SetWindowText(sDisp);
+
+	////IppDib dibTmpl;
+	//if (!m_dibTmpl.Load(CT2A(sModelName)))
+	//{
+	//	AfxMessageBox(_T("Model 파일을 불러오지 못했습니다."));
+	//	return FALSE;
+	//}
+
+
+	while (bExist)
+	{
+		bExist = cFile.FindNextFile();
+		if (cFile.IsDots()) continue;
+		if (cFile.IsDirectory()) continue;
+
+		sFileName = cFile.GetFileName();
+		sFilePath = cFile.GetFilePath();
+		uint8_t* RoiData = CropTif(sFilePath, stRoi, sRoiName);
+		// 메모리 해제
+		delete[] RoiData;
+		Sleep(10);
+
+		// 템플릿 매칭
+		if (!TemplateMatchingTif(sModelName, sRoiName, ptResult))
+			return FALSE;
+
+		int OffsetX = ptResult.x - ptCenter.x;
+		int OffsetY = ptResult.y - ptCenter.y;
+		sRst.Format(_T("[템플릿매칭] 입력영상: %s, 흔들린 상대좌표: (%d, %d)\r\n"), sFileName, OffsetX, OffsetY);
+		sDisp += sRst;
+
+		nTot++;
+	}
+
+	GetDlgItem(IDC_EDIT_DISPLAY)->SetWindowText(sDisp);
+	return TRUE;
+}
+
+uint8_t* CRoiPositionCheckerDlg::CropTif(CString sPath, ImageRange stRng, CString sTarget)
+{
+	CString sMsg;
+
+	const char* inputFilename = CStringToChar(&sPath);
+	const char* outputFilename = CStringToChar(&sTarget);
+
+	const int cropOrgX = stRng.nOrgX; // 잘라낼 영역의 시작위치 X
+	const int cropOrgY = stRng.nOrgY; // 잘라낼 영역의 시작위치 Y
+	const int cropWidth = stRng.nWidth; // 잘라낼 영역의 너비
+	const int cropHeight = stRng.nHeight; // 잘라낼 영역의 높이
+
+	// TIFF 파일 열기
+	TIFF* tif_i = TIFFOpen(inputFilename, "r");
+	delete inputFilename;
+
+	if (!tif_i)
+	{
+		TRACE(_T("Source 파일을 열 수 없습니다."));
+		sMsg.Format(_T("Source 파일을 열 수 없습니다: %s"), sPath);
+		AfxMessageBox(sMsg);
+		return NULL;
+	}
+
+	// TIFF 헤더
+	// 이미지 크기 및 속성 설정 (Default Values)
+	uint32_t width = 640;								// 이미지의 너비
+	uint32_t height = 480;								// 이미지의 높이
+	uint16_t bitsPerSample = 8;							// 각 픽셀당 비트 수
+	uint16_t samplesPerPixel = 1;						// 회색조 이미지
+	uint16_t photoMetric = PHOTOMETRIC_MINISBLACK;		// 회색조 이미지
+	uint16_t planarConfig = PLANARCONFIG_CONTIG;		// 픽셀 데이터가 연속적으로 저장
+
+	TIFFGetField(tif_i, TIFFTAG_IMAGEWIDTH, &width);
+	TIFFGetField(tif_i, TIFFTAG_IMAGELENGTH, &height);
+	TIFFGetField(tif_i, TIFFTAG_BITSPERSAMPLE, &bitsPerSample);
+	TIFFGetField(tif_i, TIFFTAG_SAMPLESPERPIXEL, &samplesPerPixel);
+	TIFFGetField(tif_i, TIFFTAG_PHOTOMETRIC, &photoMetric);
+	TIFFGetField(tif_i, TIFFTAG_PLANARCONFIG, &planarConfig);
+
+	// 원본 이미지 크기
+	uint32_t imageSizeOrg = width * height * sizeof(uint8_t);
+
+	uint8_t* imageData_i = new uint8_t[imageSizeOrg];
+	for (uint32_t row = 0; row < height; ++row) 
+	{
+		TIFFReadScanline(tif_i, &imageData_i[row * width], row, 0);
+	}
+
+	// TIFF 파일 닫기
+	TIFFClose(tif_i);
+
+
+	TIFF* tif_o = TIFFOpen(outputFilename, "w");
+	delete outputFilename;
+
+	if (!tif_o)
+	{
+		TRACE(_T("Target 파일을 열 수 없습니다."));
+		sMsg.Format(_T("Target 파일을 열 수 없습니다: %s"), sTarget);
+		AfxMessageBox(sMsg);
+		return NULL;
+	}
+
+	// 새로운 이미지 정보 헤더 설정
+	TIFFInfoHeader newInfoHeader;
+	newInfoHeader.width = cropWidth;
+	newInfoHeader.height = cropHeight;
+	newInfoHeader.imageSize = cropWidth * cropHeight * sizeof(uint8_t);
+	newInfoHeader.bitCount = bitsPerSample;
+
+	// 새로운 파일 헤더 및 이미지 정보 헤더 쓰기
+	TIFFSetField(tif_o, TIFFTAG_IMAGEWIDTH, cropWidth);
+	TIFFSetField(tif_o, TIFFTAG_IMAGELENGTH, cropHeight);
+	TIFFSetField(tif_o, TIFFTAG_BITSPERSAMPLE, bitsPerSample);
+	TIFFSetField(tif_o, TIFFTAG_SAMPLESPERPIXEL, samplesPerPixel);
+	TIFFSetField(tif_o, TIFFTAG_PHOTOMETRIC, photoMetric);
+	TIFFSetField(tif_o, TIFFTAG_PLANARCONFIG, planarConfig);
+
+	// 이미지 데이터를 저장할 버퍼 생성
+	uint8_t* imageData_o = new uint8_t[cropWidth * cropHeight * samplesPerPixel];
+
+	// 이미지 데이터 작성 (임의의 회색조 데이터 생성)
+	for (uint32_t y = 0; y < cropHeight; ++y)
+	{
+		for (uint32_t x = 0; x < cropWidth; ++x)
+		{
+			int sourceIndex = ((cropOrgY + y) * width + cropOrgX + x);
+			int destIndex = (y * cropWidth + x);
+			//int sourceIndex = ((height - cropOrgY - 1 - y) * width + cropOrgX + x);
+			//int destIndex = ((cropHeight - 1 - y) * cropWidth + x);
+			imageData_o[destIndex] = imageData_i[sourceIndex];
+		}
+	}
+
+	// 잘라낸 이미지 데이터 쓰기
+	for (uint32_t row = 0; row < cropHeight; ++row) 
+	{
+		TIFFWriteScanline(tif_o, &imageData_o[row * cropWidth], row, 0);
+	}
+
+	// TIFF 파일 닫기
+	TIFFClose(tif_o);
+
+	// 메모리 해제
+	delete[] imageData_i;
+	//delete[] imageData_o;
+
+	//std::cout << "이미지가 성공적으로 crop되었습니다." << std::endl;
+	TRACE(_T("이미지가 성공적으로 crop되었습니다."));
+	return imageData_o;
+}
+
+BOOL CRoiPositionCheckerDlg::GetTifInfoHeader(CString sPath, TIFFInfoHeader& infoHeader)
+{
+	CString sMsg;
+	const char* inputFilename = CStringToChar(&sPath);
+
+	// TIFF 파일 열기
+	TIFF* tif_i = TIFFOpen(inputFilename, "r");
+	delete inputFilename;
+
+	if (!tif_i)
+	{
+		TRACE(_T("Source 파일을 열 수 없습니다."));
+		sMsg.Format(_T("Source 파일을 열 수 없습니다: %s"), sPath);
+		AfxMessageBox(sMsg);
+		return NULL;
+	}
+
+	// TIFF 헤더
+	// 이미지 크기 및 속성 설정 (Default Values)
+	uint32_t width = 640;								// 이미지의 너비
+	uint32_t height = 480;								// 이미지의 높이
+	uint16_t bitsPerSample = 8;							// 각 픽셀당 비트 수
+	uint16_t samplesPerPixel = 1;						// 회색조 이미지
+	uint16_t photoMetric = PHOTOMETRIC_MINISBLACK;		// 회색조 이미지
+	uint16_t planarConfig = PLANARCONFIG_CONTIG;		// 픽셀 데이터가 연속적으로 저장
+
+	TIFFGetField(tif_i, TIFFTAG_IMAGEWIDTH, &width);
+	TIFFGetField(tif_i, TIFFTAG_IMAGELENGTH, &height);
+	TIFFGetField(tif_i, TIFFTAG_BITSPERSAMPLE, &bitsPerSample);
+	TIFFGetField(tif_i, TIFFTAG_SAMPLESPERPIXEL, &samplesPerPixel);
+	TIFFGetField(tif_i, TIFFTAG_PHOTOMETRIC, &photoMetric);
+	TIFFGetField(tif_i, TIFFTAG_PLANARCONFIG, &planarConfig);
+
+
+	// 새로운 이미지 정보 헤더 설정
+	infoHeader.width = width;
+	infoHeader.height = height;
+	infoHeader.imageSize = width * height * sizeof(uint8_t);
+	infoHeader.bitCount = bitsPerSample;
+
+	// TIFF 파일 닫기
+	TIFFClose(tif_i);
+
+	return TRUE;
+}
+
+BOOL CRoiPositionCheckerDlg::SetTifImageRange(TIFFInfoHeader bmpInfoHeader)
+{
+	UpdateData(TRUE);
+
+	int nWidth = bmpInfoHeader.width;
+	int nHeight = bmpInfoHeader.height;
+
+	int nOrgX_m = _ttoi(m_sOrgX);
+	int nOrgY_m = _ttoi(m_sOrgY);
+	int nWidth_m = _ttoi(m_sWidth);
+	int nHeight_m = _ttoi(m_sHeight);
+
+	int nOrgX_r = _ttoi(m_sOrgX) - _ttoi(m_sMaxPixel);
+	int nOrgY_r = _ttoi(m_sOrgY) - _ttoi(m_sMaxPixel);
+	int nWidth_r = _ttoi(m_sWidth) + _ttoi(m_sMaxPixel) * 2;
+	int nHeight_r = _ttoi(m_sHeight) + _ttoi(m_sMaxPixel) * 2;
+
+	int nWidth_mLog = int(log2(nWidth_m));
+	if (log2(nWidth_m) > nWidth_mLog) nWidth_mLog++;
+
+	int nHeight_mLog = int(log2(nHeight_m));
+	if (log2(nHeight_m) > nHeight_mLog) nHeight_mLog++;
+
+	int nWidth_rLog = int(log2(nWidth_r));
+	if (log2(nWidth_r) > nWidth_rLog) nWidth_rLog++;
+
+	int nHeight_rLog = int(log2(nHeight_r));
+	if (log2(nHeight_r) > nHeight_rLog) nHeight_rLog++;
+
+	int nWidth_mV = pow(2, nWidth_mLog);
+	int nHeight_mV = pow(2, nHeight_mLog);
+
+	int nWidth_rV = pow(2, nWidth_rLog);
+	int nHeight_rV = pow(2, nHeight_rLog);
+
+	int nWidth_mD = nWidth_mV - nWidth_m;
+	int nHeight_mD = nHeight_mV - nHeight_m;
+
+	int nWidth_rD = nWidth_rV - nWidth_r;
+	int nHeight_rD = nHeight_rV - nHeight_r;
+
+	stModel.nOrgX = nOrgX_m - nWidth_mD / 2;
+	stModel.nOrgY = nOrgY_m - nHeight_mD / 2;
+	stModel.nWidth = nWidth_mV;
+	stModel.nHeight = nHeight_mV;
+
+	stRoi.nOrgX = nOrgX_r - nWidth_rD / 2;
+	stRoi.nOrgY = nOrgY_r - nHeight_rD / 2;
+	stRoi.nWidth = nWidth_rV;
+	stRoi.nHeight = nHeight_rV;
+
+	CString sMsg;
+
+	if (stModel.nOrgY + stModel.nHeight >= nHeight)
+	{
+		TRACE(_T("Model 이미지의 Y방향 크기가 원본 이미지의 크기보다 큽니다."));
+		sMsg.Format(_T("Model 이미지의 Y방향 크기가 원본 이미지의 크기보다 큽니다."));
+		AfxMessageBox(sMsg);
+		return FALSE;
+	}
+
+	if (stModel.nOrgX + stModel.nWidth >= nWidth)
+	{
+		TRACE(_T("Model 이미지의 X방향 크기가 원본 이미지의 크기보다 큽니다."));
+		sMsg.Format(_T("Model 이미지의 X방향 크기가 원본 이미지의 크기보다 큽니다."));
+		AfxMessageBox(sMsg);
+		return FALSE;
+	}
+
+	if (stRoi.nOrgY + stRoi.nHeight >= nHeight)
+	{
+		TRACE(_T("ROI의 최대떨림 이미지의 Y방향 크기가 원본 이미지의 크기보다 큽니다."));
+		sMsg.Format(_T("ROI의 최대떨림 이미지의 Y방향 크기가 원본 이미지의 크기보다 큽니다."));
+		AfxMessageBox(sMsg);
+		return FALSE;
+	}
+
+	if (stRoi.nOrgX + stRoi.nWidth >= nWidth)
+	{
+		TRACE(_T("ROI의 최대떨림 이미지의 X방향 크기가 원본 이미지의 크기보다 큽니다."));
+		sMsg.Format(_T("ROI의 최대떨림 이미지의 X방향 크기가 원본 이미지의 크기보다 큽니다."));
+		AfxMessageBox(sMsg);
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+BOOL CRoiPositionCheckerDlg::TemplateMatchingTif(CString sModelName, CString sRoiName, CPoint& pnt)
+{
+	CString sMsg;
+
+	//IppDib dibTmpl;
+	//if (!dibTmpl.Load(CT2A(sModelName)))
+	//{
+	//	AfxMessageBox(_T("Model 파일을 불러오지 못했습니다."));
+	//	return FALSE;
+	//}
+
+	//IppDib dibRoi;
+	//if (!m_Dib.Load(CT2A(sRoiName)))
+	//{
+	//	AfxMessageBox(_T("Roi 파일을 불러오지 못했습니다."));
+	//	return FALSE;
+	//}
+	//AfxNewBitmap(dibTmpl);
+
+
+	// TIFF 파일 열기
+	const char* modelFilename = CStringToChar(&sModelName);
+	TIFF* tif_m = TIFFOpen(modelFilename, "r");
+	delete modelFilename;
+
+	if (!tif_m)
+	{
+		TRACE(_T("Model 파일을 열 수 없습니다."));
+		sMsg.Format(_T("Model 파일을 열 수 없습니다: %s"), sModelName);
+		AfxMessageBox(sMsg);
+		return NULL;
+	}
+
+	// TIFF 헤더
+	// 이미지 크기 및 속성 설정 (Default Values)
+	uint32_t width_m = 640;									// 이미지의 너비
+	uint32_t height_m = 480;								// 이미지의 높이
+	uint16_t bitsPerSample_m = 8;							// 각 픽셀당 비트 수
+	uint16_t samplesPerPixel_m = 1;							// 회색조 이미지
+	uint16_t photoMetric_m = PHOTOMETRIC_MINISBLACK;		// 회색조 이미지
+	uint16_t planarConfig_m = PLANARCONFIG_CONTIG;			// 픽셀 데이터가 연속적으로 저장
+
+	TIFFGetField(tif_m, TIFFTAG_IMAGEWIDTH, &width_m);
+	TIFFGetField(tif_m, TIFFTAG_IMAGELENGTH, &height_m);
+	TIFFGetField(tif_m, TIFFTAG_BITSPERSAMPLE, &bitsPerSample_m);
+	TIFFGetField(tif_m, TIFFTAG_SAMPLESPERPIXEL, &samplesPerPixel_m);
+	TIFFGetField(tif_m, TIFFTAG_PHOTOMETRIC, &photoMetric_m);
+	TIFFGetField(tif_m, TIFFTAG_PLANARCONFIG, &planarConfig_m);
+
+	// model 이미지 크기
+	uint32_t imageSizeModel = width_m * height_m * sizeof(uint8_t);
+
+	uint8_t* imageData_m = new uint8_t[imageSizeModel];
+	for (uint32_t row_m = 0; row_m < height_m; ++row_m)
+	{
+		TIFFReadScanline(tif_m, &imageData_m[row_m * width_m], row_m, 0);
+	}
+	
+	// TIFF 파일 닫기
+	TIFFClose(tif_m);
+
+
+	// TIFF 파일 열기
+	const char* roiFilename = CStringToChar(&sRoiName);
+	TIFF* tif_r = TIFFOpen(roiFilename, "r");
+	delete roiFilename;
+
+	if (!tif_r)
+	{
+		TRACE(_T("ROI 파일을 열 수 없습니다."));
+		sMsg.Format(_T("ROI 파일을 열 수 없습니다: %s"), sRoiName);
+		AfxMessageBox(sMsg);
+		return NULL;
+	}
+
+	// TIFF 헤더
+	// 이미지 크기 및 속성 설정 (Default Values)
+	uint32_t width_r = 640;									// 이미지의 너비
+	uint32_t height_r = 480;								// 이미지의 높이
+	uint16_t bitsPerSample_r = 8;							// 각 픽셀당 비트 수
+	uint16_t samplesPerPixel_r = 1;							// 회색조 이미지
+	uint16_t photoMetric_r = PHOTOMETRIC_MINISBLACK;		// 회색조 이미지
+	uint16_t planarConfig_r = PLANARCONFIG_CONTIG;			// 픽셀 데이터가 연속적으로 저장
+
+	TIFFGetField(tif_r, TIFFTAG_IMAGEWIDTH, &width_r);
+	TIFFGetField(tif_r, TIFFTAG_IMAGELENGTH, &height_r);
+	TIFFGetField(tif_r, TIFFTAG_BITSPERSAMPLE, &bitsPerSample_r);
+	TIFFGetField(tif_r, TIFFTAG_SAMPLESPERPIXEL, &samplesPerPixel_r);
+	TIFFGetField(tif_r, TIFFTAG_PHOTOMETRIC, &photoMetric_r);
+	TIFFGetField(tif_r, TIFFTAG_PLANARCONFIG, &planarConfig_r);
+
+	// model 이미지 크기
+	uint32_t roiSizeModel = width_r * height_r * sizeof(uint8_t);
+
+	uint8_t* imageData_r = new uint8_t[roiSizeModel];
+	for (uint32_t row_r = 0; row_r < height_r; ++row_r)
+	{
+		TIFFReadScanline(tif_r, &imageData_r[row_r * width_r], row_r, 0);
+	}
+
+	// TIFF 파일 닫기
+	TIFFClose(tif_r);
+
+
+	if (width_r < width_m || height_r < height_m)
+	{
+		AfxMessageBox(_T("템플릿 영상의 크기가 입력 영상보다 큽니다."));
+		return FALSE;
+	}
+
+	IppByteImage img, imgTmpl;
+
+	{
+		int w = width_m;
+		int h = height_m;
+		int ws = (w + 3) & ~3;
+		BYTE* pDIBits = (BYTE*)imageData_m;
+
+		imgTmpl.CreateImage(w, h);
+		BYTE** pixels = imgTmpl.GetPixels2D();
+
+		for (int i = 0; i < h; i++)
+		{
+			memcpy(pixels[i], &pDIBits[(h - 1 - i) * ws], w);
+		}
+	}
+
+	{
+		int w = width_r;
+		int h = height_r;
+		int ws = (w + 3) & ~3;
+		BYTE* pDIBits = (BYTE*)imageData_r;
+
+		img.CreateImage(w, h);
+		BYTE** pixels = img.GetPixels2D();
+
+		for (int i = 0; i < h; i++)
+		{
+			memcpy(pixels[i], &pDIBits[(h - 1 - i) * ws], w);
+		}
+	}
+
+	//CONVERT_DIB_TO_BYTEIMAGE(m_Dib, img);
+	//CONVERT_DIB_TO_BYTEIMAGE(m_dibTmpl, imgTmpl);
+	IppIntImage imgMap;
+	IppPoint dp = IppTemplateMatching(img, imgTmpl, imgMap); // (IppByteImage& imgSrc, IppByteImage& imgTmpl, IppIntImage& imgMap)
+	pnt.x = dp.x;
+	pnt.y = dp.y;
+
+#if 0
+	{
+		IppByteImage imgCvt(img.GetWidth(), img.GetHeight());
+		BYTE* pCvt = imgCvt.GetPixels();
+		int* pMap = imgMap.GetPixels();
+
+		int max_value = 0;
+		for (int i = 0; i < img.GetSize(); i++)
+		{
+			if (pMap[i] > max_value) max_value = pMap[i];
+		}
+
+		if (max_value != 0)
+		{
+			for (int i = 0; i < img.GetSize(); i++)
+			{
+				pCvt[i] = pMap[i] * 255 / max_value;
+			}
+		}
+
+		CONVERT_IMAGE_TO_DIB(imgCvt, dibMap)
+			AfxNewBitmap(dibMap);
+	}
+#endif
+
+#if 0
+	{ // 입력 영상에 BOX 그리기
+		int tw2 = imgTmpl.GetWidth() / 2;
+		int th2 = imgTmpl.GetHeight() / 2;
+
+		int minx = dp.x - tw2;
+		int maxx = dp.x + tw2;
+		int miny = dp.y - th2;
+		int maxy = dp.y + th2;
+
+		BYTE** ptr = img.GetPixels2D();
+
+		for (int j = miny; j < maxy; j++)
+			ptr[j][minx] = ptr[j][maxx] = 255;
+
+		for (int i = minx; i < maxx; i++)
+			ptr[miny][i] = ptr[maxy][i] = 255;
+	}
+
+	CONVERT_IMAGE_TO_DIB(img, dib);
+
+	AfxPrintInfo(_T("[템플릿 매칭] 입력 영상: %s, 템플릿 영상: %s, 검출 좌표: (%d, %d)"),
+		GetTitle(), dlg.GetFileName(), dp.x, dp.y);
+	AfxNewBitmap(dib);
+#endif
+
+	sMsg.Format(_T("[템플릿 매칭] 입력 영상: %s, 템플릿 영상: %s, 검출 좌표: (%d, %d)"), sRoiName, sModelName, dp.x, dp.y);
+	TRACE(sMsg);
+
+	// 메모리 해제
+	delete[] imageData_m;	// Model
+	delete[] imageData_r;	// ROI
+
 	return TRUE;
 }

@@ -37,6 +37,20 @@ struct BMPInfoHeader {
 	uint32_t colorsImportant;
 };
 
+// TIFF 이미지 정보 헤더 구조체
+struct TIFFInfoHeader {
+	//uint32_t headerSize;
+	int32_t width;
+	int32_t height;
+	uint16_t planes;
+	uint16_t bitCount;
+	uint32_t compression;
+	uint32_t imageSize;
+	int32_t xPixelsPerMeter;
+	int32_t yPixelsPerMeter;
+	uint32_t colorsUsed;
+	uint32_t colorsImportant;
+};
 #pragma pack(pop) // 이전에 사용한 패킹을 복원합니다.
 
 
@@ -45,8 +59,10 @@ struct BMPInfoHeader {
 #define ModelWidth		16; // 패턴모델 영역의 너비
 #define ModelHeight		16; // 패턴모델 영역의 높이
 
-#define CropModelName	_T("Model.bmp"); // 패턴모델 파일명
-#define CropRoiName		_T("Roi.bmp"); // 패턴모델 파일명
+#define BmpCropModelName	_T("Model.bmp"); // 패턴모델 파일명
+#define BmpCropRoiName		_T("Roi.bmp"); // 패턴모델 파일명
+#define TifCropModelName	_T("Model.tif"); // 패턴모델 파일명
+#define TifCropRoiName		_T("Roi.tif"); // 패턴모델 파일명
 
 
 struct ImageRange {
@@ -64,6 +80,8 @@ class CRoiPositionCheckerDlg : public CDialogEx
 
 	CString m_sPathCurrBmp;
 	CString m_sPathPrevBmpFolder, m_sNamePrevBmpFile;
+	CString m_sPathCurrTif;
+	CString m_sPathPrevTifFolder, m_sNamePrevTifFile;
 	ImageRange stRoi, stModel;
 
 	void TestBmpCopy(CString sPath);
@@ -77,11 +95,20 @@ class CRoiPositionCheckerDlg : public CDialogEx
 	TCHAR* CStringToTCHAR(CString *pStr);
 	char* CStringToChar(CString *pStr);
 
+	void StartBmp();
+	BOOL StartBmp(CString sPathCurr);
+	uint8_t* CropBmp(CString sPath, ImageRange stRng, CString sTarget);
 	BOOL GetBMPInfoHeader(CString sPath, BMPInfoHeader& infoHeader);
-	BOOL SetImageRange(BMPInfoHeader bmpInfoHeader);
-	uint8_t* Crop(CString sPath, ImageRange stRng, CString sTarget);
+	BOOL SetBmpImageRange(BMPInfoHeader bmpInfoHeader);
+
+	void StartTif();
+	BOOL StartTif(CString sPathCurr);
+	uint8_t* CropTif(CString sPath, ImageRange stRng, CString sTarget);
+	BOOL GetTifInfoHeader(CString sPath, TIFFInfoHeader& infoHeader);
+	BOOL SetTifImageRange(TIFFInfoHeader bmpInfoHeader);
+
 	BOOL TemplateMatching(CString sModelName, CString sRoiName, CPoint& pnt);
-	BOOL Start(CString sPathCurr);
+	BOOL TemplateMatchingTif(CString sModelName, CString sRoiName, CPoint& pnt);
 
 // 생성입니다.
 public:

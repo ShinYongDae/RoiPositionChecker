@@ -1,0 +1,50 @@
+﻿  IppDibJpg.cpp
+  코드를 생성하고 있습니다.
+  All 836 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  코드를 생성했습니다.
+jpeg_32.lib(jerror.obj) : warning LNK4099: 'jpeg.pdb' PDB를 'jpeg_32.lib(jerror.obj)' 또는 'C:\Users\free\Downloads\Git\RoiPositionChecker\Release\jpeg.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+jpeg_32.lib(jdapimin.obj) : warning LNK4099: 'jpeg.pdb' PDB를 'jpeg_32.lib(jdapimin.obj)' 또는 'C:\Users\free\Downloads\Git\RoiPositionChecker\Release\jpeg.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+jpeg_32.lib(jdatasrc.obj) : warning LNK4099: 'jpeg.pdb' PDB를 'jpeg_32.lib(jdatasrc.obj)' 또는 'C:\Users\free\Downloads\Git\RoiPositionChecker\Release\jpeg.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+jpeg_32.lib(jdapistd.obj) : warning LNK4099: 'jpeg.pdb' PDB를 'jpeg_32.lib(jdapistd.obj)' 또는 'C:\Users\free\Downloads\Git\RoiPositionChecker\Release\jpeg.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+jpeg_32.lib(jcapimin.obj) : warning LNK4099: 'jpeg.pdb' PDB를 'jpeg_32.lib(jcapimin.obj)' 또는 'C:\Users\free\Downloads\Git\RoiPositionChecker\Release\jpeg.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+jpeg_32.lib(jdatadst.obj) : warning LNK4099: 'jpeg.pdb' PDB를 'jpeg_32.lib(jdatadst.obj)' 또는 'C:\Users\free\Downloads\Git\RoiPositionChecker\Release\jpeg.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+jpeg_32.lib(jcparam.obj) : warning LNK4099: 'jpeg.pdb' PDB를 'jpeg_32.lib(jcparam.obj)' 또는 'C:\Users\free\Downloads\Git\RoiPositionChecker\Release\jpeg.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+jpeg_32.lib(jcapistd.obj) : warning LNK4099: 'jpeg.pdb' PDB를 'jpeg_32.lib(jcapistd.obj)' 또는 'C:\Users\free\Downloads\Git\RoiPositionChecker\Release\jpeg.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+jpeg_32.lib(jcomapi.obj) : warning LNK4099: 'jpeg.pdb' PDB를 'jpeg_32.lib(jcomapi.obj)' 또는 'C:\Users\free\Downloads\Git\RoiPositionChecker\Release\jpeg.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+jpeg_32.lib(jmemmgr.obj) : warning LNK4099: 'jpeg.pdb' PDB를 'jpeg_32.lib(jmemmgr.obj)' 또는 'C:\Users\free\Downloads\Git\RoiPositionChecker\Release\jpeg.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+jpeg_32.lib(jdmarker.obj) : warning LNK4099: 'jpeg.pdb' PDB를 'jpeg_32.lib(jdmarker.obj)' 또는 'C:\Users\free\Downloads\Git\RoiPositionChecker\Release\jpeg.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+jpeg_32.lib(jdinput.obj) : warning LNK4099: 'jpeg.pdb' PDB를 'jpeg_32.lib(jdinput.obj)' 또는 'C:\Users\free\Downloads\Git\RoiPositionChecker\Release\jpeg.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+jpeg_32.lib(jdmaster.obj) : warning LNK4099: 'jpeg.pdb' PDB를 'jpeg_32.lib(jdmaster.obj)' 또는 'C:\Users\free\Downloads\Git\RoiPositionChecker\Release\jpeg.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+jpeg_32.lib(jutils.obj) : warning LNK4099: 'jpeg.pdb' PDB를 'jpeg_32.lib(jutils.obj)' 또는 'C:\Users\free\Downloads\Git\RoiPositionChecker\Release\jpeg.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+jpeg_32.lib(jcmarker.obj) : warning LNK4099: 'jpeg.pdb' PDB를 'jpeg_32.lib(jcmarker.obj)' 또는 'C:\Users\free\Downloads\Git\RoiPositionChecker\Release\jpeg.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+jpeg_32.lib(jcinit.obj) : warning LNK4099: 'jpeg.pdb' PDB를 'jpeg_32.lib(jcinit.obj)' 또는 'C:\Users\free\Downloads\Git\RoiPositionChecker\Release\jpeg.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+jpeg_32.lib(jmemnobs.obj) : warning LNK4099: 'jpeg.pdb' PDB를 'jpeg_32.lib(jmemnobs.obj)' 또는 'C:\Users\free\Downloads\Git\RoiPositionChecker\Release\jpeg.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+jpeg_32.lib(jquant1.obj) : warning LNK4099: 'jpeg.pdb' PDB를 'jpeg_32.lib(jquant1.obj)' 또는 'C:\Users\free\Downloads\Git\RoiPositionChecker\Release\jpeg.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+jpeg_32.lib(jdmerge.obj) : warning LNK4099: 'jpeg.pdb' PDB를 'jpeg_32.lib(jdmerge.obj)' 또는 'C:\Users\free\Downloads\Git\RoiPositionChecker\Release\jpeg.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+jpeg_32.lib(jdsample.obj) : warning LNK4099: 'jpeg.pdb' PDB를 'jpeg_32.lib(jdsample.obj)' 또는 'C:\Users\free\Downloads\Git\RoiPositionChecker\Release\jpeg.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+jpeg_32.lib(jdhuff.obj) : warning LNK4099: 'jpeg.pdb' PDB를 'jpeg_32.lib(jdhuff.obj)' 또는 'C:\Users\free\Downloads\Git\RoiPositionChecker\Release\jpeg.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+jpeg_32.lib(jquant2.obj) : warning LNK4099: 'jpeg.pdb' PDB를 'jpeg_32.lib(jquant2.obj)' 또는 'C:\Users\free\Downloads\Git\RoiPositionChecker\Release\jpeg.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+jpeg_32.lib(jdarith.obj) : warning LNK4099: 'jpeg.pdb' PDB를 'jpeg_32.lib(jdarith.obj)' 또는 'C:\Users\free\Downloads\Git\RoiPositionChecker\Release\jpeg.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+jpeg_32.lib(jdcoefct.obj) : warning LNK4099: 'jpeg.pdb' PDB를 'jpeg_32.lib(jdcoefct.obj)' 또는 'C:\Users\free\Downloads\Git\RoiPositionChecker\Release\jpeg.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+jpeg_32.lib(jdcolor.obj) : warning LNK4099: 'jpeg.pdb' PDB를 'jpeg_32.lib(jdcolor.obj)' 또는 'C:\Users\free\Downloads\Git\RoiPositionChecker\Release\jpeg.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+jpeg_32.lib(jdmainct.obj) : warning LNK4099: 'jpeg.pdb' PDB를 'jpeg_32.lib(jdmainct.obj)' 또는 'C:\Users\free\Downloads\Git\RoiPositionChecker\Release\jpeg.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+jpeg_32.lib(jddctmgr.obj) : warning LNK4099: 'jpeg.pdb' PDB를 'jpeg_32.lib(jddctmgr.obj)' 또는 'C:\Users\free\Downloads\Git\RoiPositionChecker\Release\jpeg.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+jpeg_32.lib(jdpostct.obj) : warning LNK4099: 'jpeg.pdb' PDB를 'jpeg_32.lib(jdpostct.obj)' 또는 'C:\Users\free\Downloads\Git\RoiPositionChecker\Release\jpeg.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+jpeg_32.lib(jcarith.obj) : warning LNK4099: 'jpeg.pdb' PDB를 'jpeg_32.lib(jcarith.obj)' 또는 'C:\Users\free\Downloads\Git\RoiPositionChecker\Release\jpeg.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+jpeg_32.lib(jcprepct.obj) : warning LNK4099: 'jpeg.pdb' PDB를 'jpeg_32.lib(jcprepct.obj)' 또는 'C:\Users\free\Downloads\Git\RoiPositionChecker\Release\jpeg.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+jpeg_32.lib(jcsample.obj) : warning LNK4099: 'jpeg.pdb' PDB를 'jpeg_32.lib(jcsample.obj)' 또는 'C:\Users\free\Downloads\Git\RoiPositionChecker\Release\jpeg.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+jpeg_32.lib(jcmainct.obj) : warning LNK4099: 'jpeg.pdb' PDB를 'jpeg_32.lib(jcmainct.obj)' 또는 'C:\Users\free\Downloads\Git\RoiPositionChecker\Release\jpeg.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+jpeg_32.lib(jcmaster.obj) : warning LNK4099: 'jpeg.pdb' PDB를 'jpeg_32.lib(jcmaster.obj)' 또는 'C:\Users\free\Downloads\Git\RoiPositionChecker\Release\jpeg.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+jpeg_32.lib(jccoefct.obj) : warning LNK4099: 'jpeg.pdb' PDB를 'jpeg_32.lib(jccoefct.obj)' 또는 'C:\Users\free\Downloads\Git\RoiPositionChecker\Release\jpeg.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+jpeg_32.lib(jccolor.obj) : warning LNK4099: 'jpeg.pdb' PDB를 'jpeg_32.lib(jccolor.obj)' 또는 'C:\Users\free\Downloads\Git\RoiPositionChecker\Release\jpeg.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+jpeg_32.lib(jchuff.obj) : warning LNK4099: 'jpeg.pdb' PDB를 'jpeg_32.lib(jchuff.obj)' 또는 'C:\Users\free\Downloads\Git\RoiPositionChecker\Release\jpeg.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+jpeg_32.lib(jcdctmgr.obj) : warning LNK4099: 'jpeg.pdb' PDB를 'jpeg_32.lib(jcdctmgr.obj)' 또는 'C:\Users\free\Downloads\Git\RoiPositionChecker\Release\jpeg.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+jpeg_32.lib(jaricom.obj) : warning LNK4099: 'jpeg.pdb' PDB를 'jpeg_32.lib(jaricom.obj)' 또는 'C:\Users\free\Downloads\Git\RoiPositionChecker\Release\jpeg.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+jpeg_32.lib(jidctint.obj) : warning LNK4099: 'jpeg.pdb' PDB를 'jpeg_32.lib(jidctint.obj)' 또는 'C:\Users\free\Downloads\Git\RoiPositionChecker\Release\jpeg.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+jpeg_32.lib(jidctfst.obj) : warning LNK4099: 'jpeg.pdb' PDB를 'jpeg_32.lib(jidctfst.obj)' 또는 'C:\Users\free\Downloads\Git\RoiPositionChecker\Release\jpeg.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+jpeg_32.lib(jidctflt.obj) : warning LNK4099: 'jpeg.pdb' PDB를 'jpeg_32.lib(jidctflt.obj)' 또는 'C:\Users\free\Downloads\Git\RoiPositionChecker\Release\jpeg.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+jpeg_32.lib(jfdctint.obj) : warning LNK4099: 'jpeg.pdb' PDB를 'jpeg_32.lib(jfdctint.obj)' 또는 'C:\Users\free\Downloads\Git\RoiPositionChecker\Release\jpeg.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+jpeg_32.lib(jfdctfst.obj) : warning LNK4099: 'jpeg.pdb' PDB를 'jpeg_32.lib(jfdctfst.obj)' 또는 'C:\Users\free\Downloads\Git\RoiPositionChecker\Release\jpeg.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+jpeg_32.lib(jfdctflt.obj) : warning LNK4099: 'jpeg.pdb' PDB를 'jpeg_32.lib(jfdctflt.obj)' 또는 'C:\Users\free\Downloads\Git\RoiPositionChecker\Release\jpeg.pdb'에서 찾을 수 없습니다. 디버그 정보가 없는 것처럼 개체를 링크합니다.
+  RoiPositionChecker.vcxproj -> C:\Users\free\Downloads\Git\RoiPositionChecker\Release\RoiPositionChecker.exe
+  RoiPositionChecker.vcxproj -> C:\Users\free\Downloads\Git\RoiPositionChecker\Release\RoiPositionChecker.pdb (Full PDB)
